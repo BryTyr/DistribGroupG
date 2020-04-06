@@ -1,25 +1,33 @@
-import numpy as np
-from Middleware.ConnectionSystem.ConnectionSystem import ConnectionSystem
 from Middleware.MessageParsing.MessageParsing import MessageParsing
+import numpy as np
 from csv import writer
 from os import listdir
 from os.path import isfile, join
 import os
 import time
 
+
 class GroupAdmin:
-    connectionSystem = ConnectionSystem()
+    connectionSystem = ""
     messageParsing = MessageParsing()
+
+    # default constructor
+    def __init__(self,ConnectionSystem):
+        self.connectionSystem = ConnectionSystem
 
     # method to ask to join a group
     def joinGroup(self,groupID,PotientialMemberID):
-        self.connectionSystem.SendMessage("MessageType:1,GroupID:"+str(groupID)+",MemberID:"+str(PotientialMemberID)+",")
-        Response = self.connectionSystem.ReceiveMessages()
+        Response = self.connectionSystem.SendMessage("MessageType:1,GroupID:"+str(groupID)+",MemberID:"+str(PotientialMemberID)+",")
+        # Response = self.connectionSystem.ReceiveMessages()
+        print(Response)
+        MessageID = Response[12:13]
         groupID,MyMemberID = self.messageParsing.parseMessages(Response)
-        if str(PotientialMemberID) in str(MyMemberID):
+        if str(PotientialMemberID) in str(MyMemberID) and MessageID in "2":
             print("Sucess Joined Group: "+str(groupID))
         else:
-            print("Failed to join group")
+            # This can occur if the member has already joined
+            print("Failed to join group, check with Admin ")
+
 
 
     # method to ask to join a group
@@ -37,7 +45,7 @@ class GroupAdmin:
                 MemberID = line[i:j]
                 if MemberID == PotientialMemberID:
                     print('Member already Added!')
-                    return
+                    return "MessageType:3,GroupID:"+str(groupID)+",MemberID:"+str(PotientialMemberID)+","
 
             #add member to group
             # Open file in append mode
@@ -53,7 +61,7 @@ class GroupAdmin:
                 csv_writer.writerow(NewUser)
                 print("added new Member")
                 time.sleep(3.0)
-                self.connectionSystem.SendMessage("MessageType:2,GroupID:"+str(groupID)+",MemberID:"+str(PotientialMemberID)+",")
+                return "MessageType:2,GroupID:"+str(groupID)+",MemberID:"+str(PotientialMemberID)+","
 
         else:
             print("No access rights contact an admin")

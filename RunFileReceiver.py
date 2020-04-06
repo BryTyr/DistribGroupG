@@ -1,6 +1,7 @@
 from Middleware.ConnectionSystem.ConnectionSystem import ConnectionSystem
 from Middleware.GroupAdmin.GroupAdmin import GroupAdmin
 from Middleware.MessageParsing.MessageParsing import MessageParsing
+from Middleware.MessageHandler.MessageHandler import MessageHandler
 
 
 def runMessageSending():
@@ -18,13 +19,13 @@ def runMessageReceiving():
 
 
 def AddToGroup():
-    groupAdmin = GroupAdmin()
-    messageParsing = MessageParsing()
     connectionSystem = ConnectionSystem()
     Message = connectionSystem.ReceiveMessages()
-    print('Receives message: '+Message)
-    GroupID,MemberID = messageParsing.parseMessages(Message)
 
-    groupAdmin.addToGroup(GroupID,MemberID)
+
+    # print('Receives message: '+Message)
+    # GroupID,MemberID = messageParsing.parseMessages(Message)
+    #
+    # groupAdmin.addToGroup(GroupID,MemberID)
 
 AddToGroup()

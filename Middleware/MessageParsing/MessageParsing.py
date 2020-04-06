@@ -8,17 +8,7 @@ class MessageParsing:
         print('Parsed message Type:'+str(MessageType))
 
         # this parses a join group request
-        if MessageType==1:
-            i = message.find("GroupID:") + 8
-            j = message.find(",",i)
-            GroupID = message[i:j]
-            i = message.find("MemberID:") + 9
-            j = message.find(",",i)
-            MemberID = message[i:j]
-            return GroupID,MemberID
-
-        # the is a join group confirmation request
-        if MessageType==2:
+        if MessageType==1 or MessageType==2 or MessageType==3:
             i = message.find("GroupID:") + 8
             j = message.find(",",i)
             GroupID = message[i:j]

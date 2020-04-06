@@ -1,9 +1,15 @@
+from Middleware.MessageHandler.MessageHandler import MessageHandler
 import socket
 import struct
 import sys
 
-
 class ConnectionSystem:
+
+    messageHandler = ""
+
+    # default constructor
+    def __init__(self):
+        self.messageHandler = MessageHandler(self)
 
 
     def SendMessage(self, message):
@@ -14,7 +20,7 @@ class ConnectionSystem:
 
         # Set a timeout so the socket does not block indefinitely when trying
         # to receive data.
-        sock.settimeout(0.2)
+        sock.settimeout(12.0)
 
         # Set the time-to-live for messages to 1 so they do not go past the
         # local network segment.
@@ -31,12 +37,14 @@ class ConnectionSystem:
             while True:
                 print (sys.stderr, 'waiting to receive')
                 try:
-                    data, server = sock.recvfrom(16)
+                    data, server = sock.recvfrom(160)
                 except socket.timeout:
                     print (sys.stderr, 'timed out, no more responses')
                     break
                 else:
                     print (sys.stderr, 'received "%s" from %s' % (data, server))
+                    return data.decode(encoding="utf-8", errors="strict")
+
 
         finally:
             print(sys.stderr, 'closing socket')
@@ -62,18 +70,27 @@ class ConnectionSystem:
         group = socket.inet_aton(multicast_group)
         mreq = struct.pack('4sL', group, socket.INADDR_ANY)
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+        sock.setblocking(0)
+        sock.settimeout(4.5)
 
         # Receive/respond loop
+
         while True:
             print (sys.stderr, '\nwaiting to receive message')
-            data, address = sock.recvfrom(1024)
+            try:
+                data, address = sock.recvfrom(1024)
 
-            print (sys.stderr, 'received %s bytes from %s' % (len(data.decode(encoding="utf-8", errors="strict")), address))
-            print (sys.stderr, data.decode(encoding="utf-8", errors="strict"))
+                print (sys.stderr, 'received %s bytes from %s' % (len(data.decode(encoding="utf-8", errors="strict")), address))
+                print (sys.stderr, data.decode(encoding="utf-8", errors="strict"))
 
-            #ReceivedMessages.append(data.decode(encoding="utf-8", errors="strict"))
+                response = self.messageHandler.handleMessage(data.decode(encoding="utf-8", errors="strict"))
 
-            print (sys.stderr, 'sending acknowledgement to', address)
-            sock.sendto('ack'.encode(encoding="UTF-8",errors="strict"), address)
+                print("Response is: "+response)
+                print(type(response))
 
-            return data.decode(encoding="utf-8", errors="strict");
+                print (sys.stderr, 'sending acknowledgement to', address)
+                sock.sendto(response.encode(encoding="UTF-8",errors="strict"), address)
+
+
+            except:
+                print("here")
