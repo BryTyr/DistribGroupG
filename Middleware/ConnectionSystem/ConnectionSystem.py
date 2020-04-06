@@ -6,7 +6,7 @@ import sys
 class ConnectionSystem:
 
 
-    def CreateMessage(self, message):
+    def SendMessage(self, message):
         multicast_group = ('224.3.29.71', 10000)
 
         # Create the datagram socket
@@ -54,6 +54,9 @@ class ConnectionSystem:
         # Bind to the server address
         sock.bind(server_address)
 
+        # #settimeout
+        # sock.settimeout(0.5)
+
         # Tell the operating system to add the socket to the multicast group
         # on all interfaces.
         group = socket.inet_aton(multicast_group)
@@ -68,5 +71,9 @@ class ConnectionSystem:
             print (sys.stderr, 'received %s bytes from %s' % (len(data.decode(encoding="utf-8", errors="strict")), address))
             print (sys.stderr, data.decode(encoding="utf-8", errors="strict"))
 
+            #ReceivedMessages.append(data.decode(encoding="utf-8", errors="strict"))
+
             print (sys.stderr, 'sending acknowledgement to', address)
             sock.sendto('ack'.encode(encoding="UTF-8",errors="strict"), address)
+
+            return data.decode(encoding="utf-8", errors="strict");
