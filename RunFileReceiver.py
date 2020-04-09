@@ -19,8 +19,8 @@ def runMessageReceiving():
 
 
 def AddToGroup():
-    connectionSystem = ConnectionSystem()
-    Message = connectionSystem.ReceiveMessages()
+    connectionSystem = ConnectionSystem(12345)
+    connectionSystem.ReceiveMessages()
 
 
     # print('Receives message: '+Message)

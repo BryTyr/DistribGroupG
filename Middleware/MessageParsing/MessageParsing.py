@@ -8,7 +8,10 @@ class MessageParsing:
         print('Parsed message Type:'+str(MessageType))
 
         # this parses a join group request
-        if MessageType==1 or MessageType==2 or MessageType==3:
+        if MessageType==0:
+            print("Do nothing")
+
+        if MessageType==1 or MessageType==2 or MessageType==3 or MessageType==4:
             i = message.find("GroupID:") + 8
             j = message.find(",",i)
             GroupID = message[i:j]
@@ -19,7 +22,6 @@ class MessageParsing:
 
 
     def parseMembersFile(self,line):
-            print(line)
             j = line.find(",",0)
             GroupID = line[0:j]
             k = line.find(",",j+1)

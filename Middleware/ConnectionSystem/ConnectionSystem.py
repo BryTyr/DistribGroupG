@@ -6,10 +6,13 @@ import sys
 class ConnectionSystem:
 
     messageHandler = ""
+    IPAddress = ""
+    Port = ""
+
 
     # default constructor
-    def __init__(self):
-        self.messageHandler = MessageHandler(self)
+    def __init__(self,UserID):
+        self.messageHandler = MessageHandler(self,UserID)
 
 
     def SendMessage(self, message):
@@ -20,7 +23,7 @@ class ConnectionSystem:
 
         # Set a timeout so the socket does not block indefinitely when trying
         # to receive data.
-        sock.settimeout(12.0)
+        sock.settimeout(0.5)
 
         # Set the time-to-live for messages to 1 so they do not go past the
         # local network segment.
@@ -55,12 +58,13 @@ class ConnectionSystem:
 
         multicast_group = '224.3.29.71'
         server_address = ('', 10000)
-
+        #server_address = ("", self.Port)
         # Create the socket
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+        #sock.setsockopt(socket.SO_REUSEPORT)
         # Bind to the server address
-        sock.bind(server_address)
+        #sock.bind(server_address)
 
         # #settimeout
         # sock.settimeout(0.5)
@@ -70,8 +74,11 @@ class ConnectionSystem:
         group = socket.inet_aton(multicast_group)
         mreq = struct.pack('4sL', group, socket.INADDR_ANY)
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR , 1)
         sock.setblocking(0)
         sock.settimeout(4.5)
+
+        sock.bind(server_address)
 
         # Receive/respond loop
 
@@ -83,14 +90,16 @@ class ConnectionSystem:
                 print (sys.stderr, 'received %s bytes from %s' % (len(data.decode(encoding="utf-8", errors="strict")), address))
                 print (sys.stderr, data.decode(encoding="utf-8", errors="strict"))
 
-                response = self.messageHandler.handleMessage(data.decode(encoding="utf-8", errors="strict"))
+                self.messageHandler.handleMessage(data.decode(encoding="utf-8", errors="strict"))
 
-                print("Response is: "+response)
-                print(type(response))
+                #print("Response is: "+data.decode(encoding="utf-8", errors="strict"))
 
-                print (sys.stderr, 'sending acknowledgement to', address)
-                sock.sendto(response.encode(encoding="UTF-8",errors="strict"), address)
+                # print (sys.stderr, 'sending acknowledgement to', address)
+                # sock.sendto(response.encode(encoding="UTF-8",errors="strict"), address)
 
 
-            except:
-                print("here")
+            except Exception as e:
+                if e =="timed out":
+                    print("Check for user Input")
+                else:
+                    print(e)

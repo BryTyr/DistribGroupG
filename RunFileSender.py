@@ -16,9 +16,10 @@ def runMessageReceiving():
 #runMessageSending()
 
 def JoinGroup():
-    connectionSystem = ConnectionSystem()
-    groupAdmin = GroupAdmin(connectionSystem)
+    connectionSystem = ConnectionSystem(11111112)
+    groupAdmin = GroupAdmin(connectionSystem,11111112)
     # join group by supplying Group id and member id
-    groupAdmin.joinGroup(555,11111111)
+    groupAdmin.joinGroup(555,11111112)
+    connectionSystem.ReceiveMessages()
 
 JoinGroup()

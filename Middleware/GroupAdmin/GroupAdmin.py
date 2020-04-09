@@ -10,30 +10,32 @@ import time
 class GroupAdmin:
     connectionSystem = ""
     messageParsing = MessageParsing()
+    MyID = ""
 
     # default constructor
-    def __init__(self,ConnectionSystem):
+    def __init__(self,ConnectionSystem,MyID):
         self.connectionSystem = ConnectionSystem
+        self.MyID = MyID
 
     # method to ask to join a group
     def joinGroup(self,groupID,PotientialMemberID):
-        Response = self.connectionSystem.SendMessage("MessageType:1,GroupID:"+str(groupID)+",MemberID:"+str(PotientialMemberID)+",")
-        # Response = self.connectionSystem.ReceiveMessages()
-        print(Response)
-        MessageID = Response[12:13]
-        groupID,MyMemberID = self.messageParsing.parseMessages(Response)
-        if str(PotientialMemberID) in str(MyMemberID) and MessageID in "2":
+        self.connectionSystem.SendMessage("MessageType:1,GroupID:"+str(groupID)+",MemberID:"+str(PotientialMemberID)+",")
+
+    def JoinGroupResponse(self,response,groupID,MemberID):
+        print("In join group response")
+        if str(self.MyID) == str(MemberID) and response == 2:
             print("Sucess Joined Group: "+str(groupID))
-        else:
-            # This can occur if the member has already joined
-            print("Failed to join group, check with Admin ")
+        elif str(self.MyID) == str(MemberID) and response == 3:
+            print("Failed to Join the group maybe You are already a member?")
+        elif str(self.MyID) != str(MemberID):
+            print("Not for me message ignored")
 
 
 
     # method to ask to join a group
     def addToGroup(self,groupID,PotientialMemberID):
-        #check if user has access to add members
-        Access = self.CheckPrivligages(groupID,'12345')
+        #check if you, the user has access to add members
+        Access = self.CheckPrivligages(groupID,str(self.MyID))
 
         if Access == True:
             # cehck if member not already added
@@ -45,7 +47,9 @@ class GroupAdmin:
                 MemberID = line[i:j]
                 if MemberID == PotientialMemberID:
                     print('Member already Added!')
-                    return "MessageType:3,GroupID:"+str(groupID)+",MemberID:"+str(PotientialMemberID)+","
+                    time.sleep(6.0)
+                    self.connectionSystem.SendMessage("MessageType:3,GroupID:"+str(groupID)+",MemberID:"+str(PotientialMemberID)+",")
+                    return
 
             #add member to group
             # Open file in append mode
@@ -60,8 +64,8 @@ class GroupAdmin:
                 NewUser.append("JOIN")
                 csv_writer.writerow(NewUser)
                 print("added new Member")
-                time.sleep(3.0)
-                return "MessageType:2,GroupID:"+str(groupID)+",MemberID:"+str(PotientialMemberID)+","
+                time.sleep(6.0)
+                self.connectionSystem.SendMessage("MessageType:2,GroupID:"+str(groupID)+",MemberID:"+str(PotientialMemberID)+",")
 
         else:
             print("No access rights contact an admin")
