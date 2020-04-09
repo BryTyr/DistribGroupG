@@ -2,7 +2,7 @@ from Middleware.ConnectionSystem.ConnectionSystem import ConnectionSystem
 from Middleware.GroupAdmin.GroupAdmin import GroupAdmin
 from Middleware.MessageParsing.MessageParsing import MessageParsing
 from Middleware.MessageHandler.MessageHandler import MessageHandler
-from Middleware.FaultHandling.FaultHandling import FaultHandling
+from Middleware.FaultHandling.ActiveNodeFlooding import ActiveNodeFlooding
 
 
 
@@ -13,8 +13,8 @@ from Middleware.FaultHandling.FaultHandling import FaultHandling
 
 def SendGroupUpdateMessage():
     connectionSystem = ConnectionSystem(11111112)
-    faultHandling = FaultHandling(connectionSystem,11111112)
-    faultHandling.sendUpdateGroupActivity(555,11111112)
+    activeNodeFlooding = ActiveNodeFlooding(connectionSystem,11111112)
+    activeNodeFlooding.sendUpdateGroupActivity(555,11111112)
     connectionSystem.ReceiveMessages()
 
 

@@ -38,19 +38,19 @@ class ConnectionSystem:
 
             # Look for responses from all recipients
             while True:
-                print (sys.stderr, 'waiting to receive')
+                #print (sys.stderr, 'waiting to receive')
                 try:
                     data, server = sock.recvfrom(160)
                 except socket.timeout:
-                    print (sys.stderr, 'timed out, no more responses')
+                    #print (sys.stderr, 'timed out, no more responses')
                     break
                 else:
-                    print (sys.stderr, 'received "%s" from %s' % (data, server))
+                    #print (sys.stderr, 'received "%s" from %s' % (data, server))
                     return data.decode(encoding="utf-8", errors="strict")
 
 
         finally:
-            print(sys.stderr, 'closing socket')
+            #print(sys.stderr, 'closing socket')
             sock.close()
 
 
@@ -86,14 +86,15 @@ class ConnectionSystem:
             print (sys.stderr, '\nwaiting to receive message')
             try:
                 data, address = sock.recvfrom(1024)
+                # uncomment to see where the message is from
+                #print (sys.stderr, 'received %s bytes from %s' % (len(data.decode(encoding="utf-8", errors="strict")), address))
+                #print (sys.stderr, data.decode(encoding="utf-8", errors="strict"))
 
-                print (sys.stderr, 'received %s bytes from %s' % (len(data.decode(encoding="utf-8", errors="strict")), address))
-                print (sys.stderr, data.decode(encoding="utf-8", errors="strict"))
+                print("Message Received: "+data.decode(encoding="utf-8", errors="strict"))
 
                 self.messageHandler.handleMessage(data.decode(encoding="utf-8", errors="strict"))
 
-                #print("Response is: "+data.decode(encoding="utf-8", errors="strict"))
-
+                # uncooment if we watn acks
                 # print (sys.stderr, 'sending acknowledgement to', address)
                 # sock.sendto(response.encode(encoding="UTF-8",errors="strict"), address)
 

@@ -9,7 +9,7 @@ import os
 import time
 
 
-class FaultHandling:
+class ActiveNodeFlooding:
     MyID = ""
     GroupUpdate = {}
     UpdatingGroupActivity = False
