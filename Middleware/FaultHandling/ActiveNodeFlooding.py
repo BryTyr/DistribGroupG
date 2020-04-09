@@ -79,6 +79,7 @@ class ActiveNodeFlooding:
         for key, value in self.GroupUpdate.items():
             updatedListMessage = updatedListMessage+str(key)+","+str(value)+","
         # this stops group updating for x time
+        updatedListMessage=updatedListMessage+";"
         self.setCoolOffGroupFlooding()
         self.MemberNumbers = 0
         self.NumberOfUpdates = 0
@@ -88,6 +89,26 @@ class ActiveNodeFlooding:
 
     def compareFinalUpdateLists(self,message):
         print("Compared final update lists: "+message)
+        ActiveNodeDict = self.messageParsing.parseActiveMembers(message)
+        for key, activeValue in ActiveNodeDict.items():
+            print(activeValue)
+            Active = self.GroupUpdate.get(key)
+            print(Active)
+            # add key to dictionary user was not contacted
+            if Active == None:
+                self.GroupUpdate[key] = activeValue
+                continue
+
+            # consensus
+            if str(Active) == str(activeValue):
+                print('The same value match')
+                continue
+
+            # no consusus failure state
+            if str(Active) != str(activeValue):
+                print('error! consensus not reached')
+
+
 
     # sets a background thread that waits 20 seconds(cool off period) before allowing new group updates
     def setCoolOffGroupFlooding(self):

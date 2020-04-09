@@ -53,6 +53,10 @@ class MessageHandler:
                     GroupID,MemberID = self.messageParsing.parseMessages(message)
                     self.activeNodeFlooding.receivedGroupActiveUpdate(GroupID,MemberID)
 
+            # final updating of a group flooding
+            if MessageType == 5:
+                    self.activeNodeFlooding.compareFinalUpdateLists(message)
+
 
 
 

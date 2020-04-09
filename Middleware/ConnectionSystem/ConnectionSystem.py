@@ -100,7 +100,4 @@ class ConnectionSystem:
 
 
             except Exception as e:
-                if e =="timed out":
-                    print("Check for user Input")
-                else:
                     print(e)
