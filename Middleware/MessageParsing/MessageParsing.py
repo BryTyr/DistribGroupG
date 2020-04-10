@@ -19,6 +19,22 @@ class MessageParsing:
             j = message.find(",",i)
             MemberID = message[i:j]
             return GroupID,MemberID
+        # received a message parse it
+        if MessageType==6 or MessageType==7 or MessageType==8:
+            i = message.find("GroupID:") + 8
+            j = message.find(",",i)
+            GroupID = message[i:j]
+            i = message.find("MemberID:") + 9
+            j = message.find(",",i)
+            MemberID = message[i:j]
+            i = message.find("MessageID:") + 10
+            j = message.find(",",i)
+            MessageID = message[i:j]
+            i = message.find("MessageBody:") + 12
+            j = message.find(",",i)
+            MessageBody = message[i:j]
+            return GroupID,MemberID,MessageID,MessageBody
+
 
 
     def parseMembersFile(self,line):
@@ -49,3 +65,16 @@ class MessageParsing:
 
         print(GroupList)
         return GroupList
+
+    def parsePastMessages(self,message):
+            j = message.find(",",0)
+            GroupID = message[0:j]
+            k = message.find(",",j+1)
+            MemberID = message[j+1:k]
+            l = message.find(",",k+1)
+            AdminLevel = message[k+1:l]#
+            m = message.find(",",l+1)
+            messageID = message[l+1:m]
+            n = message.find(",",m+1)
+            messageBody = message[m+1:n]
+            return GroupID,MemberID,AdminLevel,messageID,messageBody

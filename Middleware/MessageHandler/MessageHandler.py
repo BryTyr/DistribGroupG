@@ -1,6 +1,7 @@
 from Middleware.MessageParsing.MessageParsing import MessageParsing
 from Middleware.GroupAdmin.GroupAdmin import GroupAdmin
 from Middleware.FaultHandling.ActiveNodeFlooding import ActiveNodeFlooding
+from Middleware.CommunicationManager.CommunicationManager import CommunicationManager
 from os import listdir
 from os.path import isfile, join
 import os
@@ -14,13 +15,16 @@ class MessageHandler:
     messageParsing = ""
     groupAdmin = ""
     activeNodeFlooding = ""
+    communicationManager = ""
 
     # default constructor
-    def __init__(self,ConnectionSystem,UserID):
+    def __init__(self,ConnectionSystem,communicationManager,UserID):
         self.Groups = [f for f in listdir("./Groups") if isfile(join("./Groups", f))]
         self.messageParsing = MessageParsing()
         self.groupAdmin = GroupAdmin(ConnectionSystem,UserID)
         self.activeNodeFlooding = ActiveNodeFlooding(ConnectionSystem,UserID)
+        #self.communicationManager = CommunicationManager(ConnectionSystem,UserID)
+        self.communicationManager = communicationManager
 
     def handleMessage(self,message):
         # Parse the Message
@@ -56,6 +60,18 @@ class MessageHandler:
             # final updating of a group flooding
             if MessageType == 5:
                     self.activeNodeFlooding.compareFinalUpdateLists(message)
+
+            # Received a text message from a group member
+            if MessageType == 6:
+                self.communicationManager.ReceivedMessage(message)
+
+            # final updating of a group flooding
+            if MessageType == 7:
+                self.communicationManager.ReceivedMessage(message)
+
+            # final updating of a group flooding
+            if MessageType == 8:
+                self.communicationManager.ReceivedMessage(message)
 
 
 

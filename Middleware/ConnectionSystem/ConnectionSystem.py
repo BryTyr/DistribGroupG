@@ -1,4 +1,5 @@
 from Middleware.MessageHandler.MessageHandler import MessageHandler
+from Middleware.CommunicationManager.CommunicationManager import CommunicationManager
 import socket
 import struct
 import sys
@@ -6,13 +7,16 @@ import sys
 class ConnectionSystem:
 
     messageHandler = ""
+    communicationManager=""
     IPAddress = ""
     Port = ""
 
 
     # default constructor
     def __init__(self,UserID):
-        self.messageHandler = MessageHandler(self,UserID)
+        self.communicationManager = CommunicationManager(self,UserID)
+        self.messageHandler = MessageHandler(self,self.communicationManager,UserID)
+
 
 
     def SendMessage(self, message):
@@ -101,3 +105,6 @@ class ConnectionSystem:
 
             except Exception as e:
                     print(e)
+
+    def callMessageSender(self,group,message):
+        self.communicationManager.sendMessage(group,message)
