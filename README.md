@@ -1,4 +1,4 @@
-# Distributed systems Group G
+# Distributed Systems Group G
 
 This is the group project developed my Group G.
 
