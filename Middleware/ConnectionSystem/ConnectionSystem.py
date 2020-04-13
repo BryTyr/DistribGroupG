@@ -6,6 +6,7 @@ import sys
 
 class ConnectionSystem:
 
+    EndProcess=False
     messageHandler = ""
     communicationManager=""
     GUI=""
@@ -90,6 +91,9 @@ class ConnectionSystem:
         while True:
             print (sys.stderr, '\nwaiting to receive message')
             try:
+                if self.EndProcess==True:
+                    exit()
+
                 data, address = sock.recvfrom(1024)
                 # uncomment to see where the message is from
                 #print (sys.stderr, 'received %s bytes from %s' % (len(data.decode(encoding="utf-8", errors="strict")), address))
@@ -111,9 +115,13 @@ class ConnectionSystem:
         print("Type is: "+str(type(GUI)))
         self.GUI = GUI
         self.communicationManager.passGUI(self.GUI)
+        self.messageHandler.passGUI(self.GUI)
 
     def returnMessageHandler(self):
         return self.messageHandler
 
     def returnCommunicationManager(self):
         return self.communicationManager
+
+    def exitSystem(self):
+        self.EndProcess=True

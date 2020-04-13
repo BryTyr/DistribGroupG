@@ -20,6 +20,7 @@ class App(threading.Thread):
         print("Callback")
 
     def run(self):
+        print(type(self.connectionSystem))
         self.gui = GUI(self.connectionSystem,self.UserID)
         self.passGUIToBackEnd()
         self.gui.setUp_Window()
@@ -32,8 +33,8 @@ class App(threading.Thread):
 
 #11111111
 #11111112
-connectionSystem = ConnectionSystem(12345)
-app = App(connectionSystem,12345)
+connectionSystem = ConnectionSystem(11111112)
+app = App(connectionSystem,11111112)
 print('Now we can continue running code while mainloop runs!')
 # default backend behaviour
 connectionSystem.ReceiveMessages()

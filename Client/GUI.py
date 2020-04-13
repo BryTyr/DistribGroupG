@@ -5,6 +5,7 @@ from os import listdir
 from os.path import isfile, join
 import os
 from tkinter import *
+import sys
 
 class GUI:
     connectionSystem=""
@@ -14,7 +15,7 @@ class GUI:
     messageParser=""
     UserID=""
     window=""
-    SendMessageButton=""
+    SendMessageBox=""
     SendMessageBox=""
     JoinGroupButton=""
     JoinGroupListBox=""
@@ -39,23 +40,39 @@ class GUI:
     def join_group(self):
         #group selected
         clicked_items = self.JoinGroupListBox.curselection()
-        # read in the group files
-        fileNames = [f for f in listdir("./Groups") if isfile(join("./Groups", f))]
-        print(self.JoinGroupListBox.get(clicked_items[0]))
-        self.CurrentSelectedGroup = self.JoinGroupListBox.get(clicked_items[0])
-        print(fileNames)
-        # check if group number present, this means the person is a member of the group. Else not in the group and send a request to join
-        if str(self.JoinGroupListBox.get(clicked_items[0]))+'.csv' in fileNames:
-            # user is in group
-            self.displayMessage(str(self.JoinGroupListBox.get(clicked_items[0])))
+
+        if len(clicked_items) < 0:
+            # read in the group files
+            fileNames = [f for f in listdir("./Groups"+str(self.UserID)) if isfile(join("./Groups"+str(self.UserID), f))]
+            print(self.JoinGroupListBox.get(clicked_items[0]))
+            self.CurrentSelectedGroup = self.JoinGroupListBox.get(clicked_items[0])
+            print(fileNames)
+            # check if group number present, this means the person is a member of the group.
+            if str(self.JoinGroupListBox.get(clicked_items[0]))+'.csv' in fileNames:
+                # user is in group
+                self.displayMessage(str(self.JoinGroupListBox.get(clicked_items[0])))
 
         else:
-            self.groupAdmin.joinGroup(str(self.JoinGroupListBox.get(clicked_items[0])),self.UserID)
+            GroupToJoin = self.EnterGroupBox.get()
+            self.groupAdmin.joinGroup(str(GroupToJoin),self.UserID)
+
+
+
+    def updateGroups(self):
+            self.EnterGroupBox.delete(0,END)
+            self.JoinGroupListBox.delete('0','end');
+            fileNames = [f for f in listdir("./Groups"+str(self.UserID)) if isfile(join("./Groups"+str(self.UserID), f))]
+            for index in range(0,len(fileNames)):
+                self.JoinGroupListBox.insert(index,str(fileNames[index])[:-4])
+            self.JoinGroupListBox.pack()
+
+
+
 
 
 
     def send_message(self):
-        result = self.SendMessageButton.get()
+        result = self.SendMessageBox.get()
         self.communicationManager.sendMessage(555,str(result))
         #self.ViewMessageBox["text"] = result
         self.SendMessageButton.delete(0,END)
@@ -66,7 +83,7 @@ class GUI:
         if str(Group)==str(self.CurrentSelectedGroup):
             messageDisplay=""
             # open group file and read in currently commiteed messages
-            with open('./GroupMessages/'+str(Group)+'.csv', 'r') as f:
+            with open('./GroupMessages'+str(self.UserID)+'/'+str(Group)+'.csv', 'r') as f:
                 lines = f.read().splitlines()
                 # ifn more then 5 messages show last 5 messages else show all messages
                 print(len(lines))
@@ -93,7 +110,7 @@ class GUI:
     def setUp_Window(self):
         root = self.window
         self.JoinGroupListBox = Listbox(root, width=20, height=10, selectmode= EXTENDED)
-        fileNames = [f for f in listdir("./Groups") if isfile(join("./Groups", f))]
+        fileNames = [f for f in listdir("./Groups"+str(self.UserID)) if isfile(join("./Groups"+str(self.UserID), f))]
         for index in range(0,len(fileNames)):
             self.JoinGroupListBox.insert(index,str(fileNames[index])[:-4])
         self.JoinGroupListBox.pack()
@@ -104,13 +121,21 @@ class GUI:
         button_delete = Button(root, text="Exit Group", command=self.exit_group)
         button_delete.pack()
 
+        messageLabel = Label(root,text="Enter Group Number")
+        messageLabel.pack(side ="top" , pady = 5)
+        self.EnterGroupBox = Entry(root)
+        self.EnterGroupBox.pack(side ="top")
+
         labelframeMessageViewBox = LabelFrame(root, text="Messages")
         labelframeMessageViewBox.pack(fill="both", expand="yes",side ="top" , pady = 5)
 
         messageLabel = Label(root,text="Enter message")
         messageLabel.pack(side ="top" , pady = 5)
-        self.SendMessageButton = Entry(root)
-        self.SendMessageButton.pack(side ="top")
+        self.SendMessageBox = Entry(root)
+        self.SendMessageBox.pack(side ="top")
+
+        root.protocol('WM_DELETE_WINDOW', self.exitApplication)
+
 
 
         button_message = Button(root, text="Send", command=self.send_message)
@@ -125,3 +150,7 @@ class GUI:
         root.geometry("500x500+200+200")
 
         root.mainloop()
+
+    def exitApplication(self):
+        self.connectionSystem.exitSystem()
+        sys.exit()

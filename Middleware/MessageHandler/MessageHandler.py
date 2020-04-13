@@ -19,11 +19,11 @@ class MessageHandler:
 
     # default constructor
     def __init__(self,ConnectionSystem,communicationManager,UserID):
-        self.Groups = [f for f in listdir("./Groups") if isfile(join("./Groups", f))]
+        self.UserID=UserID
+        self.Groups = [f for f in listdir("./Groups"+str(self.UserID)) if isfile(join("./Groups"+str(self.UserID), f))]
         self.messageParsing = MessageParsing()
         self.groupAdmin = GroupAdmin(ConnectionSystem,UserID)
         self.activeNodeFlooding = ActiveNodeFlooding(ConnectionSystem,UserID)
-        #self.communicationManager = CommunicationManager(ConnectionSystem,UserID)
         self.communicationManager = communicationManager
 
     def handleMessage(self,message):
@@ -33,49 +33,58 @@ class MessageHandler:
         GroupID = message[i:j]
 
         # check if this user is part of this group else ignore
-        if str(GroupID)+".csv" in self.Groups:
-             # This gets the type of message
-            MessageType = int(message[12:13])
+        # if str(GroupID)+".csv" in self.Groups:
+         # This gets the type of message
+        MessageType = int(message[12:13])
 
-            # Enter here for: Adding new members to a group
-            if MessageType == 1:
-                GroupID,PotientialMemberID = self.messageParsing.parseMessages(message)
-                self.groupAdmin.addToGroup(GroupID,PotientialMemberID)
+        # parse the group file and write it to memory
+        if MessageType == 0:
+            self.groupAdmin.receivedGroupFile(message)
 
-            # Enter here for: Sucessfully Adding a new member to a group
-            if MessageType == 2:
-                GroupID,JoiningMemberID = self.messageParsing.parseMessages(message)
-                self.groupAdmin.JoinGroupResponse(2,GroupID,JoiningMemberID)
+        # Enter here for: Adding new members to a group
+        if MessageType == 1:
+            GroupID,PotientialMemberID = self.messageParsing.parseMessages(message)
+            self.groupAdmin.addToGroup(GroupID,PotientialMemberID)
 
-            # Enter here for: Failed to Add a new member to a group
-            if MessageType == 3:
-                GroupID,JoiningMemberID = self.messageParsing.parseMessages(message)
-                self.groupAdmin.JoinGroupResponse(3,GroupID,JoiningMemberID)
+        # Enter here for: Sucessfully Adding a new member to a group
+        if MessageType == 2:
+            GroupID,JoiningMemberID = self.messageParsing.parseMessages(message)
+            self.groupAdmin.JoinGroupResponse(2,GroupID,JoiningMemberID)
 
-            # this calls when a group update is occuring
-            if MessageType == 4:
-                    GroupID,MemberID = self.messageParsing.parseMessages(message)
-                    self.activeNodeFlooding.receivedGroupActiveUpdate(GroupID,MemberID)
+        # Enter here for: Failed to Add a new member to a group
+        if MessageType == 3:
+            GroupID,JoiningMemberID = self.messageParsing.parseMessages(message)
+            self.groupAdmin.JoinGroupResponse(3,GroupID,JoiningMemberID)
 
-            # final updating of a group flooding
-            if MessageType == 5:
-                    self.activeNodeFlooding.compareFinalUpdateLists(message)
+        # this calls when a group update is occuring
+        if MessageType == 4:
+                GroupID,MemberID = self.messageParsing.parseMessages(message)
+                self.activeNodeFlooding.receivedGroupActiveUpdate(GroupID,MemberID)
 
-            # Received a text message from a group member
-            if MessageType == 6:
-                self.communicationManager.ReceivedMessage(message)
+        # final updating of a group flooding
+        if MessageType == 5:
+                self.activeNodeFlooding.compareFinalUpdateLists(message)
 
-            # final updating of a group flooding
-            if MessageType == 7:
-                self.communicationManager.ReceivedMessage(message)
+        # Received a text message from a group member
+        if MessageType == 6:
+            self.communicationManager.ReceivedMessage(message)
 
-            # final updating of a group flooding
-            if MessageType == 8:
-                self.communicationManager.ReceivedMessage(message)
+        # final updating of a group flooding
+        if MessageType == 7:
+            self.communicationManager.ReceivedMessage(message)
+
+        # final updating of a group flooding
+        if MessageType == 8:
+            self.communicationManager.ReceivedMessage(message)
 
 
-        else:
-            return
+
+
+        # else:
+        #     return
 
     def returnGroupAdmin(self):
         return self.groupAdmin
+
+    def passGUI(self,GUI):
+        self.groupAdmin.passGUI(GUI)
