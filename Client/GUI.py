@@ -41,7 +41,7 @@ class GUI:
         #group selected
         clicked_items = self.JoinGroupListBox.curselection()
 
-        if len(clicked_items) < 0:
+        if len(clicked_items) > 0:
             # read in the group files
             fileNames = [f for f in listdir("./Groups"+str(self.UserID)) if isfile(join("./Groups"+str(self.UserID), f))]
             print(self.JoinGroupListBox.get(clicked_items[0]))

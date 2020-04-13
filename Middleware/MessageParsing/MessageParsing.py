@@ -4,7 +4,11 @@ import time
 class MessageParsing:
 
     def parseMessages(Self,message):
-        MessageType = int(message[12:13])
+        #checks if its above 10 or under
+        try:
+            MessageType = int(message[12:14])
+        except Exception as e:
+                MessageType = int(message[12:13])
         print('Parsed message Type:'+str(MessageType))
 
         # this parses a join group request
@@ -113,3 +117,64 @@ class MessageParsing:
 
 
         return GroupID,MemberID,GroupFileArray
+
+
+
+    def parseMessageFile(self,message):
+        print("parse")
+        GroupFileArray=[]
+        i = message.find("GroupID:") + 8
+        j = message.find(",",i)
+        GroupID = message[i:j]
+        i = message.find("MemberID:") + 9
+        j = message.find(",",i)
+        MemberID = message[i:j]
+        i = message.find("GroupFile:") + 10
+        print(GroupID)
+        print(MemberID)
+
+        message=message[i:]
+        print("message before parsing loop")
+        print(message)
+
+        while message.find(",")!= -1:
+            i = message.find(",")
+            ID = message[:i]
+            j = message.find(",",i+1)
+            UID = message[i+1:j]
+            k = message.find(",",j+1)
+            adminLevel = message[j+1:k]
+            l = message.find(",",k+1)
+            intMessageID = message[k+1:l]
+            m = message.find(",",l+1)
+            messageBody = message[l+1:m]
+            message=message[m+1:]
+            print("a loop parsed")
+            print(ID)
+            print(UID)
+            print(intMessageID)
+            print(messageBody)
+
+            GroupFileArray.append([ID,UID,adminLevel,intMessageID,messageBody])
+            if  message.find(";") < 2:
+                print(message.find(";"))
+                break
+
+
+        return GroupID,MemberID,GroupFileArray
+
+    def parseCommitedMessageFile(self,message):
+        print("parse")
+        i = message.find(",")
+        ID = message[:i]
+        j = message.find(",",i+1)
+        UID = message[i+1:j]
+        k = message.find(",",j+1)
+        adminLevel = message[j+1:k]
+        l = message.find(",",k+1)
+        intMessageID = message[k+1:l]
+        m = message.find(",",l+1)
+        messageBody = message[l+1:m]
+
+
+        return ID,UID,adminLevel,intMessageID,messageBody

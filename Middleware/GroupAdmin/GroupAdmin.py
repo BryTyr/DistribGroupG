@@ -72,12 +72,15 @@ class GroupAdmin:
                 NewUser.append(str(groupID))
                 NewUser.append(str(PotientialMemberID))
                 NewUser.append("0")
-                NewUser.append("JOIN")
                 csv_writer.writerow(NewUser)
                 print("added new Member")
-                time.sleep(3.0)
-                self.connectionSystem.SendMessage("MessageType:2,GroupID:"+str(groupID)+",MemberID:"+str(PotientialMemberID)+",")
-                self.sendGroupFile(groupID)
+            time.sleep(2.0)
+            self.connectionSystem.SendMessage("MessageType:2,GroupID:"+str(groupID)+",MemberID:"+str(PotientialMemberID)+",")
+            time.sleep(3.5)
+            self.sendMessageFile(groupID)
+            time.sleep(1.5)
+            self.sendGroupFile(groupID)
+
 
         else:
             print("No access rights contact an admin")
@@ -118,6 +121,41 @@ class GroupAdmin:
 
             self.GUI.updateGroups()
 
+    def sendMessageFile(self,GroupID):
+        print("send message File")
+        readfile = open('./GroupMessages'+str(self.UserID)+'/'+str(GroupID)+'.csv', 'r', encoding='utf-8-sig')
+        reader = readfile.readlines()
+        sendFileMessage= ""
+        for row in reader:
+            print(row)
+            groupID,memberID,AdminLevel,messageID,MessageBody = self.messageParsing.parseCommitedMessageFile(row)
+            print(groupID)
+            print(memberID)
+            print(AdminLevel)
+            sendFileMessage = sendFileMessage + groupID + "," + memberID + "," + AdminLevel + "," + messageID + "," + MessageBody + ","
+        print(sendFileMessage)
+        self.connectionSystem.SendMessage("MessageType:13,GroupID:"+str(GroupID)+",MemberID:"+str(self.UserID)+","+"GroupFile:"+sendFileMessage+";")
+
+
+    # check if you are in this group too?
+    def receivedMessageFile(self,message):
+         #add member to group
+         print(message)
+         GroupID,MemberID,GroupFileArray = self.messageParsing.parseMessageFile(message)
+         print(GroupFileArray)
+        # Open file and write it
+         with open('./GroupMessages'+str(self.UserID)+'/'+str(GroupID)+'.csv', 'w+', newline='') as write_obj:
+            # Create a writer object from csv module
+            csv_writer = writer(write_obj)
+            # Add contents of list as last row in the csv file
+            MemberFile=[]
+            member=[]
+            #for()
+            for row in GroupFileArray:
+                csv_writer.writerow(row)
+                print("added new Member to new group file")
+
+            self.GUI.updateGroups()
 
     # method to leave a group (User wants to resign)
     def leaveGroup(self,GroupID,MemberID):

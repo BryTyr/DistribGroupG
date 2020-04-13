@@ -35,7 +35,12 @@ class MessageHandler:
         # check if this user is part of this group else ignore
         # if str(GroupID)+".csv" in self.Groups:
          # This gets the type of message
-        MessageType = int(message[12:13])
+        #checks if its above 10 or under
+        try:
+            MessageType = int(message[12:14])
+        except Exception as e:
+                MessageType = int(message[12:13])
+        print('Parsed message Type:'+str(MessageType))
 
         # parse the group file and write it to memory
         if MessageType == 0:
@@ -76,6 +81,10 @@ class MessageHandler:
         # final updating of a group flooding
         if MessageType == 8:
             self.communicationManager.ReceivedMessage(message)
+
+        # parse the message file
+        if MessageType == 13:
+            self.groupAdmin.receivedMessageFile(message)
 
 
 

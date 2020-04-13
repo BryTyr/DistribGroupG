@@ -44,7 +44,7 @@ class CommunicationManager:
 
     def sendMessage(self,TargetGroupID,TargetMessageBody):
         # gets last commited message from file
-        with open('./GroupMessages/'+str(TargetGroupID)+'.csv', 'r') as f:
+        with open('./GroupMessages'+str(self.MyID)+'/'+str(TargetGroupID)+'.csv', 'r') as f:
             lines = f.read().splitlines()
             last_line = lines[-1]
             GroupID,MemberID,AdminLevel,messageID,messageBody = self.messageParsing.parsePastMessages(last_line)
@@ -65,7 +65,7 @@ class CommunicationManager:
         ReceivedGroupID,ReceivedMemberID,ReceivedmessageID,MessageBody = self.messageParsing.parseMessages(message)
 
         # check if you are part of this group
-        GroupFile = open('./Groups/'+str(ReceivedGroupID)+'.csv', "r")
+        GroupFile = open('./Groups'+str(self.MyID)+'/'+str(ReceivedGroupID)+'.csv', "r")
         row = GroupFile.readlines()
         for line in row:
             groupID,memberID,AdminLevel = self.messageParsing.parseMembersFile(line)
@@ -75,7 +75,7 @@ class CommunicationManager:
                 if self.CurrentlySendingMessage == False:
                     print("Inside currently sending message")
                     # if not then check your ready to commit and send a response
-                    with open('./GroupMessages/'+str(ReceivedGroupID)+'.csv', 'r') as f:
+                    with open('./GroupMessages'+str(self.MyID)+'/'+str(ReceivedGroupID)+'.csv', 'r') as f:
                         lines = f.read().splitlines()
                         last_line = lines[-1]
                         GroupID,MemberID,AdminLevel,messageID,messageBody = self.messageParsing.parsePastMessages(last_line)
@@ -133,10 +133,9 @@ class CommunicationManager:
 
     def commitMessage(self):
         print("commited")
-        print("right hand")
         GroupID,MemberID,messageID ,MessageBody = self.messageParsing.parseMessages(self.CurrentMessage)
 
-        with open('./GroupMessages/'+str(GroupID)+'.csv', 'a+', newline='') as write_obj:
+        with open('./GroupMessages'+str(self.MyID)+'/'+str(GroupID)+'.csv', 'a+', newline='') as write_obj:
             # Create a writer object from csv module
             csv_writer = writer(write_obj)
             # Add contents of list as last row in the csv file
@@ -153,7 +152,7 @@ class CommunicationManager:
 
     def displayMessages(self,GroupID):
         Messages = []
-        GroupFile = open('./GroupMessages/'+str(GroupID)+'.csv', "r")
+        GroupFile = open('./GroupMessages'+str(self.MyID)+'/'+str(GroupID)+'.csv', "r")
         row = GroupFile.readlines()
         for line in row:
             GroupID,MemberID,AdminLevel,messageID,messageBody = self.messageParsing.parsePastMessages(line)
