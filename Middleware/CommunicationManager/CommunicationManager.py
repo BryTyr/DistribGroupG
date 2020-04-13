@@ -10,6 +10,7 @@ import time
 
 class CommunicationManager:
     connectionSystem = ""
+    GUI=""
     messageParsing = MessageParsing()
     MyID = ""
     GroupMessaes = {}
@@ -24,6 +25,11 @@ class CommunicationManager:
     def __init__(self,ConnectionSystem,MyID):
         self.connectionSystem = ConnectionSystem
         self.MyID = MyID
+
+
+    def passGUI(self,GUI):
+        self.GUI=GUI
+
 
     # sets a background thread that waits 10 seconds before deciding if message to be commited
     def setCountDownToCommit(self):
@@ -127,7 +133,9 @@ class CommunicationManager:
 
     def commitMessage(self):
         print("commited")
+        print("right hand")
         GroupID,MemberID,messageID ,MessageBody = self.messageParsing.parseMessages(self.CurrentMessage)
+
         with open('./GroupMessages/'+str(GroupID)+'.csv', 'a+', newline='') as write_obj:
             # Create a writer object from csv module
             csv_writer = writer(write_obj)
@@ -140,6 +148,7 @@ class CommunicationManager:
             NewMessage.append(MessageBody)
             csv_writer.writerow(NewMessage)
             print("added new Message")
+        self.GUI.displayMessage(GroupID)
 
 
     def displayMessages(self,GroupID):

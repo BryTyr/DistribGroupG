@@ -8,6 +8,7 @@ class ConnectionSystem:
 
     messageHandler = ""
     communicationManager=""
+    GUI=""
     IPAddress = ""
     Port = ""
 
@@ -80,7 +81,7 @@ class ConnectionSystem:
         sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR , 1)
         sock.setblocking(0)
-        sock.settimeout(4.5)
+        sock.settimeout(3.5)
 
         sock.bind(server_address)
 
@@ -106,5 +107,13 @@ class ConnectionSystem:
             except Exception as e:
                     print(e)
 
-    def callMessageSender(self,group,message):
-        self.communicationManager.sendMessage(group,message)
+    def passGUI(self,GUI):
+        print("Type is: "+str(type(GUI)))
+        self.GUI = GUI
+        self.communicationManager.passGUI(self.GUI)
+
+    def returnMessageHandler(self):
+        return self.messageHandler
+
+    def returnCommunicationManager(self):
+        return self.communicationManager

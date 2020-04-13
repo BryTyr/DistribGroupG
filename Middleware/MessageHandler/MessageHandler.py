@@ -74,7 +74,8 @@ class MessageHandler:
                 self.communicationManager.ReceivedMessage(message)
 
 
-
-
         else:
             return
+
+    def returnGroupAdmin(self):
+        return self.groupAdmin

@@ -32,7 +32,7 @@ class MessageParsing:
             MessageID = message[i:j]
             i = message.find("MessageBody:") + 12
             j = message.find(",",i)
-            MessageBody = message[i:j]
+            MessageBody = message[i:]
             return GroupID,MemberID,MessageID,MessageBody
 
 
@@ -72,9 +72,9 @@ class MessageParsing:
             k = message.find(",",j+1)
             MemberID = message[j+1:k]
             l = message.find(",",k+1)
-            AdminLevel = message[k+1:l]#
+            AdminLevel = message[k+1:l]
             m = message.find(",",l+1)
             messageID = message[l+1:m]
             n = message.find(",",m+1)
-            messageBody = message[m+1:n]
+            messageBody = message[m+1:]
             return GroupID,MemberID,AdminLevel,messageID,messageBody

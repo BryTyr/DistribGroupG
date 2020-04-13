@@ -12,10 +12,12 @@ import csv
 class GroupAdmin:
     connectionSystem = ""
     messageParsing = MessageParsing()
+    UserID = ""
 
     # default constructor
-    def __init__(self,ConnectionSystem):
+    def __init__(self,ConnectionSystem,userID):
         self.connectionSystem = ConnectionSystem
+        self.UserID = userID
 
     # method to ask to join a group
     def joinGroup(self,groupID,PotientialMemberID):
