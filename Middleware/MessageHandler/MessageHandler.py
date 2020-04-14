@@ -83,9 +83,14 @@ class MessageHandler:
         if MessageType == 8:
             self.communicationManager.ReceivedMessage(message)
 
+        if MessageType == 9:
+            GroupID,MemberID = self.messageParsing.parseMessages(message)
+            self.groupAdmin.leaveGroup(GroupID,MemberID)
+
         # parse the message file
         if MessageType == 13:
             self.groupAdmin.receivedMessageFile(message)
+
 
         # parse the message file
         if MessageType == 14:

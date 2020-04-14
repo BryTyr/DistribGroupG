@@ -52,7 +52,7 @@ class GroupAdmin:
 
         if Access == True:
             # cehck if member not already added
-            GroupFile = open('./Groups'+str(self.UserID)+'/'+str(groupID)+'.csv', "r")
+            GroupFile = open('./Groups'+str(self.UserID)+'/'+str(groupID)+'.csv', "r", encoding='utf-8-sig')
             row = GroupFile.readlines()
             for line in row:
                 i = line.find(",") + 1
@@ -64,7 +64,7 @@ class GroupAdmin:
 
             #add member to group
             # Open file in append mode
-            with open('./Groups'+str(self.UserID)+'/'+str(groupID)+'.csv', 'a+', newline='') as write_obj:
+            with open('./Groups'+str(self.UserID)+'/'+str(groupID)+'.csv', 'a+', newline='', encoding='utf-8-sig') as write_obj:
                 # Create a writer object from csv module
                 csv_writer = writer(write_obj)
                 # Add contents of list as last row in the csv file
@@ -96,6 +96,7 @@ class GroupAdmin:
             print(groupID)
             print(memberID)
             print(AdminLevel)
+            print("Added member to group file")
             sendFileMessage = sendFileMessage + groupID + "," + memberID + "," + AdminLevel + ","
         print(sendFileMessage)
         self.connectionSystem.SendMessage("MessageType:0,GroupID:"+str(GroupID)+",MemberID:"+str(self.UserID)+","+"GroupFile:"+sendFileMessage+";")
@@ -108,7 +109,7 @@ class GroupAdmin:
          GroupID,MemberID,GroupFileArray = self.messageParsing.parseGroupFile(message)
          print(GroupFileArray)
         # Open file and write it
-         with open('./Groups'+str(self.UserID)+'/'+str(GroupID)+'.csv', 'w+', newline='') as write_obj:
+         with open('./Groups'+str(self.UserID)+'/'+str(GroupID)+'.csv', 'w+', newline='', encoding='utf-8-sig') as write_obj:
             # Create a writer object from csv module
             csv_writer = writer(write_obj)
             # Add contents of list as last row in the csv file
@@ -144,7 +145,7 @@ class GroupAdmin:
          GroupID,MemberID,GroupFileArray = self.messageParsing.parseMessageFile(message)
          print(GroupFileArray)
         # Open file and write it
-         with open('./GroupMessages'+str(self.UserID)+'/'+str(GroupID)+'.csv', 'w+', newline='') as write_obj:
+         with open('./GroupMessages'+str(self.UserID)+'/'+str(GroupID)+'.csv', 'w+', newline='', encoding='utf-8-sig') as write_obj:
             # Create a writer object from csv module
             csv_writer = writer(write_obj)
             # Add contents of list as last row in the csv file
@@ -153,28 +154,42 @@ class GroupAdmin:
             #for()
             for row in GroupFileArray:
                 csv_writer.writerow(row)
-                print("added new Member to new group file")
+                print("added new message to new message file")
 
             self.GUI.updateGroups()
 
     # method to leave a group (User wants to resign)
     def leaveGroup(self,GroupID,MemberID):
             lines= list()
-            #GroupFile = open('./Groups/'+str(groupID)+'.csv', "r")
-            readfile = open('./Groups'+str(self.UserID)+'/'+str(GroupID)+'.csv', 'r')
+            readfile = open('./Groups'+str(self.UserID)+'/'+str(GroupID)+'.csv', 'r', encoding='utf-8-sig')
             reader = readfile.readlines()
             for row in reader:
                 groupID_No_Use,memberID_No_Use,AdminLevel = self.messageParsing.parseMembersFile(row)
-                if str(MemberID) not in str(memberID_No_Use) or str(AdminLevel) == "2":
+                print("parsed leave group member file")
+                print(groupID_No_Use)
+                print(memberID_No_Use)
+                print(AdminLevel)
+                if str(MemberID) != str(memberID_No_Use):#or str(AdminLevel) == "2"
                     lines.append(row)
 
 
-            writeFile1 = open('./Group'+str(self.UserID)+'/'+str(GroupID)+'.csv', 'w')
+            writeFile1 = open('./Groups'+str(self.UserID)+'/'+str(GroupID)+'.csv', 'w', encoding='utf-8-sig')
             writeFile1.writelines(lines)
+            writeFile1.close()
+            readfile.close()
             #writer.writerows(lines)
-            print("Member Left the Group")
+            print("Member "+str(MemberID)+" Left the Group")
             time.sleep(3.0)
-            self.connectionSystem.SendMessage("MessageType:9,GroupID:"+str(GroupID)+",MemberID:"+str(MemberID)+",")
+            # if user left then remove them an tell system
+            if MemberID==self.UserID:
+                # remove the data and send a message telling the system you removed yourself
+                os.remove('./Groups'+str(self.UserID)+'/'+str(GroupID)+'.csv')
+                os.remove('./GroupMessages'+str(self.UserID)+'/'+str(GroupID)+'.csv')
+                self.connectionSystem.SendMessage("MessageType:9,GroupID:"+str(GroupID)+",MemberID:"+str(MemberID)+",")
+                self.GUI.updateGroups()
+                self.GUI.wipeMessages()
+
+
 
 
 
@@ -185,7 +200,7 @@ class GroupAdmin:
         if Access == True :
             lines= list()
             #GroupFile = open('./Groups/'+str(groupID)+'.csv', "r")
-            readfile = open('./Groups'+str(self.UserID)+'/'+str(GroupID)+'.csv', 'r')
+            readfile = open('./Groups'+str(self.UserID)+'/'+str(GroupID)+'.csv', 'r', encoding='utf-8-sig')
             reader = readfile.readlines()
             for row in reader:
                 groupID_No_Use,memberID_No_Use,AdminLevel = self.messageParsing.parseMembersFile(row)
@@ -193,7 +208,7 @@ class GroupAdmin:
                     lines.append(row)
 
 
-            writeFile1 = open('./Groups'+str(self.UserID)+'/'+str(GroupID)+'.csv', 'w')
+            writeFile1 = open('./Groups'+str(self.UserID)+'/'+str(GroupID)+'.csv', 'w', encoding='utf-8-sig')
             writeFile1.writelines(lines)
 
             if(str(AdminLevel) == "2"):
@@ -216,7 +231,7 @@ class GroupAdmin:
         if str(GroupId)+'.csv' in fileNames:
             # check if this user has privigages
             # if user does return true else false
-            GroupFile = open('./Groups'+str(self.UserID)+'/'+str(GroupId)+'.csv', "r")
+            GroupFile = open('./Groups'+str(self.UserID)+'/'+str(GroupId)+'.csv', "r", encoding='utf-8-sig')
             row = GroupFile.readlines()
             for line in row:
                 groupID,memberID,AdminLevel = self.messageParsing.parseMembersFile(line)
@@ -233,7 +248,7 @@ class GroupAdmin:
         if str(PotantialGroupID)+ '.csv' in filenames:
             print("Group Already Exists. Change the Name/Id of the Group")
         else:
-                with open('./Groups'+str(self.UserID)+'/'+str(PotantialGroupID)+'.csv', 'w') as writeFile:
+                with open('./Groups'+str(self.UserID)+'/'+str(PotantialGroupID)+'.csv', 'w', encoding='utf-8-sig') as writeFile:
                     fieldnames = ['GroupID','MemberID','MemberRank','Action']
                     writer1 = csv.DictWriter(writeFile, fieldnames)
                     writer1.writeheader()
@@ -264,7 +279,7 @@ class GroupAdmin:
         if str(ToBeDeletedGroupId)+ '.csv' in filenames:
                 lines= list()
 
-                with open('./Groups'+str(self.UserID)+'/'+str(ToBeDeletedGroupId)+'.csv', 'r') as readFile:
+                with open('./Groups'+str(self.UserID)+'/'+str(ToBeDeletedGroupId)+'.csv', 'r', encoding='utf-8-sig') as readFile:
                     reader = readFile.readlines()
 
                     for row in reader:

@@ -67,15 +67,27 @@ class GUI:
             self.JoinGroupListBox.pack()
 
 
+    # check if userID entered
+    # if not then remove this person(leave group)
+    # esle if userID entered, check if you have permissions to remove people and remove them
+    def removeFromGroup(self):
+        print("removal from group")
+        clicked_items = self.JoinGroupListBox.curselection()
+        self.CurrentSelectedGroup = self.JoinGroupListBox.get(clicked_items[0])
+        self.groupAdmin.leaveGroup(str(self.CurrentSelectedGroup),self.UserID)
+
+    def wipeMessages(self):
+        self.ViewMessageBox["text"] = "No Group Selected"
+
 
 
 
 
     def send_message(self):
         result = self.SendMessageBox.get()
+        self.SendMessageBox.delete(0,END)
         self.communicationManager.sendMessage(555,str(result))
         #self.ViewMessageBox["text"] = result
-        self.SendMessageButton.delete(0,END)
         print(result)
 
     def displayMessage(self,Group):
@@ -118,7 +130,7 @@ class GUI:
         self.JoinGroupButton = Button(root, text="Join Group", command=self.join_group)
         self.JoinGroupButton.pack()
 
-        button_delete = Button(root, text="Exit Group", command=self.exit_group)
+        button_delete = Button(root, text="Exit Group", command=self.removeFromGroup)
         button_delete.pack()
 
         messageLabel = Label(root,text="Enter Group Number")
@@ -146,6 +158,8 @@ class GUI:
 
         self.ViewMessageBox = Label(labelframeMessageViewBox)
         self.ViewMessageBox.pack(side ="top" , pady = 5)
+
+        self.wipeMessages()
 
         root.geometry("500x500+200+200")
 

@@ -1,4 +1,10 @@
-555,12345,2,0,hello
+﻿555,12345,2,0,hello
 555,12345,2,1,world
 555,11111112,0,2,test message
 555,12345,0,3,next test message
+555,11111112,0,4,close and open
+555,11111112,0,5,hello new group
+555,11111112,0,6,hey
+555,12345,0,7,test message
+555,12345,0,8,testing
+555,11111113,0,9,hello group

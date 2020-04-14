@@ -15,7 +15,7 @@ class MessageParsing:
         if MessageType==0:
             print("Do nothing")
 
-        if MessageType==1 or MessageType==2 or MessageType==3 or MessageType==4 or MessageType==0:
+        if MessageType==1 or MessageType==2 or MessageType==3 or MessageType==4 or MessageType==0 or MessageType==9:
             i = message.find("GroupID:") + 8
             j = message.find(",",i)
             GroupID = message[i:j]
@@ -51,11 +51,9 @@ class MessageParsing:
             return GroupID,MemberID,AdminLevel
 
     def parseActiveMembers(self,memberList):
-        print("")
         i = memberList.find("ActiveMemberList:") + 17
         memberList = memberList[i:]
         GroupList = {}
-        print("Parsed memeber list: " + memberList)
         while(memberList.find(",")!= -1):
             i = memberList.find(",")
             Member = memberList[:i]
@@ -67,7 +65,6 @@ class MessageParsing:
                 print(memberList.find(";"))
                 break
 
-        print(GroupList)
         return GroupList
 
     def parsePastMessages(self,message):
@@ -84,7 +81,7 @@ class MessageParsing:
             return GroupID,MemberID,AdminLevel,messageID,messageBody
 
     def parseGroupFile(self,message):
-        print("parse")
+        print("parsing group file")
         GroupFileArray=[]
         i = message.find("GroupID:") + 8
         j = message.find(",",i)
@@ -93,11 +90,8 @@ class MessageParsing:
         j = message.find(",",i)
         MemberID = message[i:j]
         i = message.find("GroupFile:") + 10
-        print(GroupID)
-        print(MemberID)
 
         message=message[i:]
-        print(message)
 
         while message.find(",")!= -1:
             i = message.find(",")
@@ -107,7 +101,6 @@ class MessageParsing:
             k = message.find(",",j+1)
             adminLevel = message[j+1:k]
             message=message[k+1:]
-            print(message)
             GroupFileArray.append([ID,UID,adminLevel])
             if  message.find(";") < 2:
                 print(message.find(";"))

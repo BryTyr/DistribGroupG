@@ -63,11 +63,23 @@ class CommunicationManager:
         self.activeNodeFlooding.sendUpdateGroupActivity(TargetGroupID,self.MyID)
         time.sleep(2.0)
         self.ActiveNodesTopology = self.activeNodeFlooding.getActiveNodeDict()
-        print("Active nodes")
-        print(self.ActiveNodesTopology)
         self.CurrentlySendingMessage = True
         self.CurrentMessageID = int(messageID)+1
+        # check if a network partition has occured and if you are in the majority
+        print("checking here")
+        GroupFile = open('./Groups'+str(self.MyID)+'/'+str(TargetGroupID)+'.csv', "r")
+        row = GroupFile.readlines()
+        GroupLength = len(row)
+        print("................................................................................................................................")
+        print("Partition check")
+        print("Number of total nodes in the group: "+str(GroupLength))
+        print("Number of Nodes currently active: "+str(len(self.ActiveNodesTopology)))
+        print("................................................................................................................................")
+        if len(self.ActiveNodesTopology) < int(GroupLength/2):
+            print("partitioned occured!")
+        #send message to system
         self.connectionSystem.SendMessage("MessageType:6,GroupID:"+str(TargetGroupID)+",MemberID:"+str(self.MyID)+","+"MessageID:"+str(int(messageID)+1)+","+"MessageBody:"+str(TargetMessageBody))
+
 
 
     # reads the last line of its commit log
@@ -132,9 +144,12 @@ class CommunicationManager:
     # checks if the threshold met and if so then commit else reset everything
     def checkIfThresholdMet(self):
         LengthOfGroup = len(self.GroupActiveMembers)
+        print(LengthOfGroup)
         positiveResponses = 1
         ActieNodes=0
         # reset boolean
+        self.ActiveNodesTopology = self.activeNodeFlooding.getActiveNodeDict()
+        print(len(self.ActiveNodesTopology))
         self.CurrentlySendingMessage = False
         print("Amount of recorded members")
         print(self.GroupActiveMembers)
