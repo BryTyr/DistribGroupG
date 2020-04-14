@@ -63,7 +63,7 @@ class CommunicationManager:
         self.currentTargetGroupID = TargetGroupID
         # send message with Updated id
         self.activeNodeFlooding.sendUpdateGroupActivity(TargetGroupID,self.MyID)
-        time.sleep(2.0)
+        time.sleep(3.0)
         self.ActiveNodesTopology = self.activeNodeFlooding.getActiveNodeDict()
         self.setCountDownToCommit()
 
@@ -138,7 +138,7 @@ class CommunicationManager:
         LengthOfGroup = len(self.GroupActiveMembers)
         print(LengthOfGroup)
         positiveResponses = 1
-        ActiveNodes=0
+        ActiveNodes = 0
         # reset boolean
         self.ActiveNodesTopology = self.activeNodeFlooding.getActiveNodeDict()
         print(len(self.ActiveNodesTopology))
@@ -176,8 +176,11 @@ class CommunicationManager:
         print("................................................................................................................................")
 
         majority = (GroupLength/2) + 1
+        print(ActiveNodes)
+        print(majority)
+        print(positiveResponses)
         #--------------------------------------------------------------------
-        if (ActiveNodes >= majority) and (positiveResponses == ActiveNodes):
+        if (ActiveNodes >= int(majority)) and (positiveResponses == ActiveNodes):
             self.backoffTimer = 5
             print("\n\n\n\n\n\n\n")
             print("Commit Sucessful")
