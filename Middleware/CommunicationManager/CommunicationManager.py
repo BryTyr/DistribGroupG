@@ -178,15 +178,15 @@ class CommunicationManager:
         majority = (GroupLength/2) + 1
         #--------------------------------------------------------------------
         if (ActiveNodes >= majority) and (positiveResponses == ActiveNodes):
-            backoffTimer = 5
+            self.backoffTimer = 5
             print("\n\n\n\n\n\n\n")
             print("Commit Sucessful")
             print(self.CurrentMessage)
             self.commitMessage(self.CurrentMessage)
         else:
-            sleep(backoffTimer)
-            if backoffTimer < 30:
-                backoffTimer += 5
+            sleep(self.backoffTimer)
+            if self.backoffTimer < 30:
+                self.backoffTimer += 5
             print("Not enough positive responses aborting commit")
 
 
