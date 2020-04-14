@@ -23,6 +23,8 @@ class CommunicationManager:
     activeNodeFlooding = ""
     ActiveNodesTopology={}
 
+    currentTargetGroupID=0
+    backoffTimer = 5
 
     GroupActiveMembers = {}
 
@@ -58,25 +60,15 @@ class CommunicationManager:
             GroupID,MemberID,AdminLevel,messageID,messageBody = self.messageParsing.parsePastMessages(last_line)
             self.groupActive = TargetGroupID
             self.CurrentMessage = "MessageType:6,GroupID:"+str(TargetGroupID)+",MemberID:"+str(self.MyID)+","+"MessageID:"+str(int(messageID)+1)+","+"MessageBody:"+str(TargetMessageBody)
-        self.setCountDownToCommit()
+        self.currentTargetGroupID = TargetGroupID
         # send message with Updated id
         self.activeNodeFlooding.sendUpdateGroupActivity(TargetGroupID,self.MyID)
         time.sleep(2.0)
         self.ActiveNodesTopology = self.activeNodeFlooding.getActiveNodeDict()
+        self.setCountDownToCommit()
+
         self.CurrentlySendingMessage = True
         self.CurrentMessageID = int(messageID)+1
-        # check if a network partition has occured and if you are in the majority
-        print("checking here")
-        GroupFile = open('./Groups'+str(self.MyID)+'/'+str(TargetGroupID)+'.csv', "r")
-        row = GroupFile.readlines()
-        GroupLength = len(row)
-        print("................................................................................................................................")
-        print("Partition check")
-        print("Number of total nodes in the group: "+str(GroupLength))
-        print("Number of Nodes currently active: "+str(len(self.ActiveNodesTopology)))
-        print("................................................................................................................................")
-        if len(self.ActiveNodesTopology) < int(GroupLength/2):
-            print("partitioned occured!")
         #send message to system
         self.connectionSystem.SendMessage("MessageType:6,GroupID:"+str(TargetGroupID)+",MemberID:"+str(self.MyID)+","+"MessageID:"+str(int(messageID)+1)+","+"MessageBody:"+str(TargetMessageBody))
 
@@ -146,7 +138,7 @@ class CommunicationManager:
         LengthOfGroup = len(self.GroupActiveMembers)
         print(LengthOfGroup)
         positiveResponses = 1
-        ActieNodes=0
+        ActiveNodes=0
         # reset boolean
         self.ActiveNodesTopology = self.activeNodeFlooding.getActiveNodeDict()
         print(len(self.ActiveNodesTopology))
@@ -164,22 +156,44 @@ class CommunicationManager:
             print(key)
             print(value)
             if str(value) == str(True):
-                ActieNodes+=1
+                ActiveNodes+=1
 
-        print(positiveResponses)
-        print(ActieNodes)
-        if str(positiveResponses) == str(ActieNodes):
+        #print(positiveResponses)
+        #print(ActiveNodes)
+
+        #
+        # check for majority also timeout print failed due to not majority, return to break
+        #
+        # add in backoff of 5 seconds per failure
+        #
+        GroupFile = open('./Groups'+str(self.MyID)+'/'+str(self.currentTargetGroupID)+'.csv', "r")
+        row = GroupFile.readlines()
+        GroupLength = len(row)
+        print("................................................................................................................................")
+        print("Partition check")
+        print("Number of total nodes in the group: "+str(GroupLength))
+        print("Number of Nodes currently active: "+str(ActiveNodes))
+        print("................................................................................................................................")
+
+        majority = (GroupLength/2) + 1
+        #--------------------------------------------------------------------
+        if (ActiveNodes >= majority) and (positiveResponses == ActiveNodes):
+            backoffTimer = 5
+            print("\n\n\n\n\n\n\n")
             print("Commit Sucessful")
             print(self.CurrentMessage)
             self.commitMessage(self.CurrentMessage)
         else:
+            sleep(backoffTimer)
+            if backoffTimer < 30:
+                backoffTimer += 5
             print("Not enough positive responses aborting commit")
 
 
     def commitMessage(self,currentMessage):
+
         print("commited")
         GroupID,MemberID,messageID ,MessageBody = self.messageParsing.parseMessages(currentMessage)
-
         if self.LastCommitedMessage == int(messageID):
             return
 
