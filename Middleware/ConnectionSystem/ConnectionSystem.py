@@ -1,5 +1,6 @@
 from Middleware.MessageHandler.MessageHandler import MessageHandler
 from Middleware.CommunicationManager.CommunicationManager import CommunicationManager
+import traceback
 import socket
 import struct
 import sys
@@ -18,6 +19,8 @@ class ConnectionSystem:
     def __init__(self,UserID):
         self.communicationManager = CommunicationManager(self,UserID)
         self.messageHandler = MessageHandler(self,self.communicationManager,UserID)
+
+
 
 
 
@@ -110,6 +113,8 @@ class ConnectionSystem:
 
             except Exception as e:
                     print(e)
+                    #desired_trace = traceback.format_exc(sys.exc_info())
+                    #print(desired_trace)
 
     def passGUI(self,GUI):
         print("Type is: "+str(type(GUI)))

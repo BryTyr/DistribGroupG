@@ -1,4 +1,5 @@
 from Middleware.MessageParsing.MessageParsing import MessageParsing
+from Middleware.FaultHandling.ActiveNodeFlooding import ActiveNodeFlooding
 from threading import Thread
 from time import sleep
 from os import listdir
@@ -17,6 +18,10 @@ class CommunicationManager:
     CurrentlySendingMessage = False
     groupActive = ""
     CurrentMessage = ""
+    CurrentMessageID = 0
+    LastCommitedMessage = 0
+    activeNodeFlooding = ""
+    ActiveNodesTopology={}
 
 
     GroupActiveMembers = {}
@@ -29,6 +34,9 @@ class CommunicationManager:
 
     def passGUI(self,GUI):
         self.GUI=GUI
+
+    def setActiveNodeFlooding(self,nodeFlooding):
+        self.activeNodeFlooding = nodeFlooding
 
 
     # sets a background thread that waits 10 seconds before deciding if message to be commited
@@ -48,19 +56,25 @@ class CommunicationManager:
             lines = f.read().splitlines()
             last_line = lines[-1]
             GroupID,MemberID,AdminLevel,messageID,messageBody = self.messageParsing.parsePastMessages(last_line)
-            self.CurrentlySendingMessage = True
             self.groupActive = TargetGroupID
             self.CurrentMessage = "MessageType:6,GroupID:"+str(TargetGroupID)+",MemberID:"+str(self.MyID)+","+"MessageID:"+str(int(messageID)+1)+","+"MessageBody:"+str(TargetMessageBody)
-            self.setCountDownToCommit()
+        self.setCountDownToCommit()
         # send message with Updated id
+        self.activeNodeFlooding.sendUpdateGroupActivity(TargetGroupID,self.MyID)
+        time.sleep(2.0)
+        self.ActiveNodesTopology = self.activeNodeFlooding.getActiveNodeDict()
+        print("Active nodes")
+        print(self.ActiveNodesTopology)
+        self.CurrentlySendingMessage = True
+        self.CurrentMessageID = int(messageID)+1
         self.connectionSystem.SendMessage("MessageType:6,GroupID:"+str(TargetGroupID)+",MemberID:"+str(self.MyID)+","+"MessageID:"+str(int(messageID)+1)+","+"MessageBody:"+str(TargetMessageBody))
 
 
     # reads the last line of its commit log
-    # if the id is 1 ahead thenit says ready to commit
+    # if the id is 1 ahead the nit says ready to commit
     # else if say no
     def ReceivedMessage(self,message):
-        print("here")
+        print("received message")
         # parses the current received message
         ReceivedGroupID,ReceivedMemberID,ReceivedmessageID,MessageBody = self.messageParsing.parseMessages(message)
 
@@ -73,7 +87,7 @@ class CommunicationManager:
                 print("inside joined groups: part of this group")
                 # if you are part of the group check if you sent this message if not enter this loop
                 if self.CurrentlySendingMessage == False:
-                    print("Inside currently sending message")
+                    print("Inside message sending")
                     # if not then check your ready to commit and send a response
                     with open('./GroupMessages'+str(self.MyID)+'/'+str(ReceivedGroupID)+'.csv', 'r') as f:
                         lines = f.read().splitlines()
@@ -82,7 +96,14 @@ class CommunicationManager:
 
                     # Message matches current ID ready to commit it
                     time.sleep(2.0)
-                    if int(messageID)+1 == int(ReceivedmessageID):
+                    #received a message for an already commited message
+                    print("Last Commited Message Numbers")
+                    print(self.LastCommitedMessage)
+                    print(ReceivedmessageID)
+                    if self.LastCommitedMessage == int(ReceivedmessageID):
+                        return
+
+                    if int(messageID)+1 == int(ReceivedmessageID) :
                         self.connectionSystem.SendMessage("MessageType:7,GroupID:"+str(GroupID)+",MemberID:"+str(self.MyID)+","+"MessageID:"+str(int(ReceivedmessageID))+","+"MessageBody:"+str(MessageBody))
                         return
                     else:
@@ -111,7 +132,8 @@ class CommunicationManager:
     # checks if the threshold met and if so then commit else reset everything
     def checkIfThresholdMet(self):
         LengthOfGroup = len(self.GroupActiveMembers)
-        positiveCount = 0
+        positiveResponses = 1
+        ActieNodes=0
         # reset boolean
         self.CurrentlySendingMessage = False
         print("Amount of recorded members")
@@ -120,20 +142,31 @@ class CommunicationManager:
             print(key)
             print(value)
             if str(value) == str(True):
-                positiveCount+=1
+                positiveResponses+=1
 
-        print(positiveCount)
-        print(LengthOfGroup)
-        if str(positiveCount) == str(LengthOfGroup):
+        # get number of active nodes
+        for key,value in self.ActiveNodesTopology.items():
+            print(key)
+            print(value)
+            if str(value) == str(True):
+                ActieNodes+=1
+
+        print(positiveResponses)
+        print(ActieNodes)
+        if str(positiveResponses) == str(ActieNodes):
             print("Commit Sucessful")
-            self.commitMessage()
+            print(self.CurrentMessage)
+            self.commitMessage(self.CurrentMessage)
         else:
             print("Not enough positive responses aborting commit")
 
 
-    def commitMessage(self):
+    def commitMessage(self,currentMessage):
         print("commited")
-        GroupID,MemberID,messageID ,MessageBody = self.messageParsing.parseMessages(self.CurrentMessage)
+        GroupID,MemberID,messageID ,MessageBody = self.messageParsing.parseMessages(currentMessage)
+
+        if self.LastCommitedMessage == int(messageID):
+            return
 
         with open('./GroupMessages'+str(self.MyID)+'/'+str(GroupID)+'.csv', 'a+', newline='') as write_obj:
             # Create a writer object from csv module
@@ -147,6 +180,8 @@ class CommunicationManager:
             NewMessage.append(MessageBody)
             csv_writer.writerow(NewMessage)
             print("added new Message")
+        self.LastCommitedMessage = int(messageID)
+        self.connectionSystem.SendMessage("MessageType:14,GroupID:"+str(GroupID)+",MemberID:"+str(self.MyID)+","+"MessageID:"+str(int(messageID))+","+"MessageBody:"+str(MessageBody))
         self.GUI.displayMessage(GroupID)
 
 

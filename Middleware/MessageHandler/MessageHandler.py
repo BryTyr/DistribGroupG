@@ -25,6 +25,7 @@ class MessageHandler:
         self.groupAdmin = GroupAdmin(ConnectionSystem,UserID)
         self.activeNodeFlooding = ActiveNodeFlooding(ConnectionSystem,UserID)
         self.communicationManager = communicationManager
+        self.communicationManager.setActiveNodeFlooding(self.activeNodeFlooding)
 
     def handleMessage(self,message):
         # Parse the Message
@@ -86,6 +87,10 @@ class MessageHandler:
         if MessageType == 13:
             self.groupAdmin.receivedMessageFile(message)
 
+        # parse the message file
+        if MessageType == 14:
+            self.communicationManager.commitMessage(message)
+
 
 
 
@@ -97,3 +102,6 @@ class MessageHandler:
 
     def passGUI(self,GUI):
         self.groupAdmin.passGUI(GUI)
+
+    def getActiveNodeFlooding(self):
+        return self.activeNodeFlooding

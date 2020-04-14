@@ -24,7 +24,7 @@ class MessageParsing:
             MemberID = message[i:j]
             return GroupID,MemberID
         # received a message parse it
-        if MessageType==6 or MessageType==7 or MessageType==8:
+        if MessageType==6 or MessageType==7 or MessageType==8 or MessageType==14:
             i = message.find("GroupID:") + 8
             j = message.find(",",i)
             GroupID = message[i:j]
@@ -121,7 +121,7 @@ class MessageParsing:
 
 
     def parseMessageFile(self,message):
-        print("parse")
+        print("parsing input....")
         GroupFileArray=[]
         i = message.find("GroupID:") + 8
         j = message.find(",",i)
@@ -130,12 +130,8 @@ class MessageParsing:
         j = message.find(",",i)
         MemberID = message[i:j]
         i = message.find("GroupFile:") + 10
-        print(GroupID)
-        print(MemberID)
 
         message=message[i:]
-        print("message before parsing loop")
-        print(message)
 
         while message.find(",")!= -1:
             i = message.find(",")
@@ -149,11 +145,6 @@ class MessageParsing:
             m = message.find(",",l+1)
             messageBody = message[l+1:m]
             message=message[m+1:]
-            print("a loop parsed")
-            print(ID)
-            print(UID)
-            print(intMessageID)
-            print(messageBody)
 
             GroupFileArray.append([ID,UID,adminLevel,intMessageID,messageBody])
             if  message.find(";") < 2:
@@ -164,7 +155,6 @@ class MessageParsing:
         return GroupID,MemberID,GroupFileArray
 
     def parseCommitedMessageFile(self,message):
-        print("parse")
         i = message.find(",")
         ID = message[:i]
         j = message.find(",",i+1)

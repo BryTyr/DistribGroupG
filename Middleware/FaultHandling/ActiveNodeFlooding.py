@@ -48,9 +48,9 @@ class ActiveNodeFlooding:
             self.GroupUpdate[MemberID] = True
         # if no then create the group active dictionary and enter the first update
         else:
-            self.GroupUpdate = {}
+            #self.GroupUpdate = {}
             # read in group file to create members in update dictionary
-            GroupFile = open('./Groups/'+str(groupID)+'.csv', "r")
+            GroupFile = open('./Groups'+str(self.MyID)+'/'+str(groupID)+'.csv', "r")
             row = GroupFile.readlines()
             for line in row:
                 GroupID,GroupFileMemberID,AdminLevel = self.messageParsing.parseMembersFile(line)
@@ -96,7 +96,7 @@ class ActiveNodeFlooding:
             print(Active)
             # add key to dictionary user was not contacted
             if Active == None:
-                self.GroupUpdate[key] = activeValue
+                #self.GroupUpdate[key] = activeValue
                 continue
 
             # consensus
@@ -108,7 +108,8 @@ class ActiveNodeFlooding:
             if str(Active) != str(activeValue):
                 print('error! consensus not reached')
 
-
+    def getActiveNodeDict(self):
+            return self.GroupUpdate
 
     # sets a background thread that waits 20 seconds(cool off period) before allowing new group updates
     def setCoolOffGroupFlooding(self):
