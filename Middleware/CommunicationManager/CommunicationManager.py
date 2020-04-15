@@ -11,6 +11,7 @@ import time
 
 class CommunicationManager:
     connectionSystem = ""
+    groupAdmin = ""
     GUI=""
     messageParsing = MessageParsing()
     MyID = ""
@@ -22,6 +23,9 @@ class CommunicationManager:
     LastCommitedMessage = 0
     activeNodeFlooding = ""
     ActiveNodesTopology={}
+    currentTargetGroupID=""
+    ReceivedMessageCount=0
+    AbortMessage=False
 
     currentTargetGroupID=0
     backoffTimer = 5
@@ -40,6 +44,9 @@ class CommunicationManager:
     def setActiveNodeFlooding(self,nodeFlooding):
         self.activeNodeFlooding = nodeFlooding
 
+    def setGroupAdmin(self,groupAdmin):
+        self.groupAdmin = groupAdmin
+
 
     # sets a background thread that waits 10 seconds before deciding if message to be commited
     def setCountDownToCommit(self):
@@ -49,7 +56,17 @@ class CommunicationManager:
     def countdownExpired(self,seconds):
         sleep(seconds)
         self.checkIfThresholdMet()
+    # sets a background thread that waits 10 seconds before deciding if message to be commited
+    def setCountDownToUnAbort(self):
+        myThread = Thread(target=self.countdownExpiredAbort, args=(15,))
+        myThread.start()
 
+    def countdownExpiredAbort(self,seconds):
+        sleep(seconds)
+        self.AbortMessage=False
+
+    def setAbortMessage(self):
+        self.AbortMessage=True
 
 
     def sendMessage(self,TargetGroupID,TargetMessageBody):
@@ -68,6 +85,7 @@ class CommunicationManager:
         self.setCountDownToCommit()
 
         self.CurrentlySendingMessage = True
+        self.LastCommitedMessage = int(messageID)
         self.CurrentMessageID = int(messageID)+1
         #send message to system
         self.connectionSystem.SendMessage("MessageType:6,GroupID:"+str(TargetGroupID)+",MemberID:"+str(self.MyID)+","+"MessageID:"+str(int(messageID)+1)+","+"MessageBody:"+str(TargetMessageBody))
@@ -98,13 +116,17 @@ class CommunicationManager:
                         last_line = lines[-1]
                         GroupID,MemberID,AdminLevel,messageID,messageBody = self.messageParsing.parsePastMessages(last_line)
 
+                    self.LastCommitedMessage = int(messageID)
+
                     # Message matches current ID ready to commit it
                     time.sleep(2.0)
                     #received a message for an already commited message
                     print("Last Commited Message Numbers")
                     print(self.LastCommitedMessage)
                     print(ReceivedmessageID)
-                    if self.LastCommitedMessage == int(ReceivedmessageID):
+                    print(self.AbortMessage)
+
+                    if self.LastCommitedMessage == int(ReceivedmessageID) or self.AbortMessage==True:
                         return
 
                     if int(messageID)+1 == int(ReceivedmessageID) :
@@ -131,6 +153,7 @@ class CommunicationManager:
         # if 8 then the user who replid is wanting to abort the message
         if MessageType == 8:
             print("not ready from member: "+MemberID)
+            self.GroupActiveMembers[MemberID] = False
 
 
     # checks if the threshold met and if so then commit else reset everything
@@ -138,6 +161,7 @@ class CommunicationManager:
         LengthOfGroup = len(self.GroupActiveMembers)
         print(LengthOfGroup)
         positiveResponses = 1
+        negitiveResponses = 0
         ActiveNodes = 0
         # reset boolean
         self.ActiveNodesTopology = self.activeNodeFlooding.getActiveNodeDict()
@@ -150,6 +174,8 @@ class CommunicationManager:
             print(value)
             if str(value) == str(True):
                 positiveResponses+=1
+            if str(value) == str(False):
+                negitiveResponses+=1
 
         # get number of active nodes
         for key,value in self.ActiveNodesTopology.items():
@@ -160,6 +186,21 @@ class CommunicationManager:
 
         #print(positiveResponses)
         #print(ActiveNodes)
+        #minority check
+        if negitiveResponses > 0:
+            print("In minority")
+            self.groupAdmin.sendMessageFile(self.currentTargetGroupID)
+            print("......................................................................................")
+            print("\n\n\n\n\n\n\n\n\n\n")
+            print("A node remerging occured please refresh and send message again")
+            print("......................................................................................")
+            time.sleep(5.0)
+            self.AbortMessage=True
+            self.connectionSystem.SendMessage("MessageType:15,GroupID:"+str(self.currentTargetGroupID)+",MemberID:"+str(self.MyID)+",")
+            return
+            #send message to system
+            #self.connectionSystem.SendMessage(self.CurrentMessage)
+
 
         #
         # check for majority also timeout print failed due to not majority, return to break
@@ -180,13 +221,17 @@ class CommunicationManager:
         print(majority)
         print(positiveResponses)
         #--------------------------------------------------------------------
+
         if (ActiveNodes >= int(majority)) and (positiveResponses == ActiveNodes):
             self.backoffTimer = 5
             print("\n\n\n\n\n\n\n")
             print("Commit Sucessful")
             print(self.CurrentMessage)
+            # reset to zero
+            self.GroupActiveMembers={}
             self.commitMessage(self.CurrentMessage)
         else:
+            print("Not enough positive responses aborting commit")
             sleep(self.backoffTimer)
             if self.backoffTimer < 30:
                 self.backoffTimer += 5
@@ -195,26 +240,40 @@ class CommunicationManager:
 
     def commitMessage(self,currentMessage):
 
-        print("commited")
         GroupID,MemberID,messageID ,MessageBody = self.messageParsing.parseMessages(currentMessage)
-        if self.LastCommitedMessage == int(messageID):
-            return
 
-        with open('./GroupMessages'+str(self.MyID)+'/'+str(GroupID)+'.csv', 'a+', newline='') as write_obj:
-            # Create a writer object from csv module
-            csv_writer = writer(write_obj)
-            # Add contents of list as last row in the csv file
-            NewMessage=[]
-            NewMessage.append(str(GroupID))
-            NewMessage.append(str(MemberID))
-            NewMessage.append('0')
-            NewMessage.append(messageID)
-            NewMessage.append(MessageBody)
-            csv_writer.writerow(NewMessage)
-            print("added new Message")
-        self.LastCommitedMessage = int(messageID)
-        self.connectionSystem.SendMessage("MessageType:14,GroupID:"+str(GroupID)+",MemberID:"+str(self.MyID)+","+"MessageID:"+str(int(messageID))+","+"MessageBody:"+str(MessageBody))
-        self.GUI.displayMessage(GroupID)
+        with open('./GroupMessages'+str(self.MyID)+'/'+str(GroupID)+'.csv', 'r') as f:
+            lines = f.read().splitlines()
+            last_line = lines[-1]
+            ParsedGroupID,ParsedMemberID,AdminLevel,ParsedMessageID,ParsedMessageBody = self.messageParsing.parsePastMessages(last_line)
+        self.LastCommitedMessage = ParsedMessageID
+
+        print(int(messageID))
+        print(self.LastCommitedMessage)
+
+        if int(self.LastCommitedMessage) <= int(messageID) and int(self.LastCommitedMessage)+1 == (int(messageID)):
+
+            print("commited")
+            with open('./GroupMessages'+str(self.MyID)+'/'+str(GroupID)+'.csv', 'a+', newline='') as write_obj:
+                # Create a writer object from csv module
+                csv_writer = writer(write_obj)
+                # Add contents of list as last row in the csv file
+                NewMessage=[]
+                NewMessage.append(str(GroupID))
+                NewMessage.append(str(MemberID))
+                NewMessage.append('0')
+                NewMessage.append(messageID)
+                NewMessage.append(MessageBody)
+                csv_writer.writerow(NewMessage)
+                print("added new Message")
+            self.LastCommitedMessage = int(messageID)
+            print(self.LastCommitedMessage)
+
+            self.connectionSystem.SendMessage("MessageType:14,GroupID:"+str(GroupID)+",MemberID:"+str(self.MyID)+","+"MessageID:"+str(int(self.CurrentMessageID))+","+"MessageBody:"+str(MessageBody))
+            self.GUI.displayMessage(GroupID)
+
+        else:
+            return
 
 
     def displayMessages(self,GroupID):

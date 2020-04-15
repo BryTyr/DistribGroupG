@@ -12,6 +12,7 @@ import time
 class ActiveNodeFlooding:
     MyID = ""
     GroupUpdate = {}
+    resetFlooding = False
     UpdatingGroupActivity = False
     coolOff = False
     MemberNumbers = 0
@@ -42,6 +43,9 @@ class ActiveNodeFlooding:
             print("In cool off from last update")
             return
 
+        if self.resetFlooding == True:
+                self.GroupUpdate={}
+                self.resetFlooding = False
         # check if currently in a flooding process for a group
         if self.UpdatingGroupActivity == True:
         # if yes update this Group member to active
@@ -114,10 +118,10 @@ class ActiveNodeFlooding:
     # sets a background thread that waits 20 seconds(cool off period) before allowing new group updates
     def setCoolOffGroupFlooding(self):
         self.coolOff = True
-        myThread = Thread(target=self.coolOffTimerExpired, args=(12,))
+        myThread = Thread(target=self.coolOffTimerExpired, args=(3,))
         myThread.start()
 
     def coolOffTimerExpired(self,seconds):
         sleep(seconds)
         self.coolOff = False
-        self.GroupUpdate={}
+        self.resetFlooding = True

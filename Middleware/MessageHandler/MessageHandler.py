@@ -2,6 +2,7 @@ from Middleware.MessageParsing.MessageParsing import MessageParsing
 from Middleware.GroupAdmin.GroupAdmin import GroupAdmin
 from Middleware.FaultHandling.ActiveNodeFlooding import ActiveNodeFlooding
 from Middleware.CommunicationManager.CommunicationManager import CommunicationManager
+from time import sleep
 from os import listdir
 from os.path import isfile, join
 import os
@@ -26,6 +27,7 @@ class MessageHandler:
         self.activeNodeFlooding = ActiveNodeFlooding(ConnectionSystem,UserID)
         self.communicationManager = communicationManager
         self.communicationManager.setActiveNodeFlooding(self.activeNodeFlooding)
+        self.communicationManager.setGroupAdmin(self.groupAdmin)
 
     def handleMessage(self,message):
         # Parse the Message
@@ -95,6 +97,11 @@ class MessageHandler:
         # parse the message file
         if MessageType == 14:
             self.communicationManager.commitMessage(message)
+
+        # parse the message file
+        if MessageType == 15:
+            print("In abort message process")
+            self.communicationManager.setAbortMessage()
 
 
 
