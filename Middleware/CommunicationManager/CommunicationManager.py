@@ -178,11 +178,30 @@ class CommunicationManager:
                 negitiveResponses+=1
 
         # get number of active nodes
+        with open('./GroupLog/GroupLog.csv', 'a+') as write_obj:
+            print("OpenedgroupLog")
+            for key,value in self.ActiveNodesTopology.items():
+                csv_writer = writer(write_obj)
+                # Add contents of list as last row in the csv file
+                NewUser=[]
+                NewUser.append(str(self.groupActive))
+                NewUser.append(str(key))
+                if str(value) == str(True):
+                    NewUser.append("Active")
+                else:
+                    NewUser.append("Inactive")
+                csv_writer.writerow(NewUser)
+                csv_writer.writerow("")
+
+
         for key,value in self.ActiveNodesTopology.items():
             print(key)
             print(value)
+            # Add contents of list as last row in the csv file
+
             if str(value) == str(True):
                 ActiveNodes+=1
+
 
         #print(positiveResponses)
         #print(ActiveNodes)
@@ -207,6 +226,7 @@ class CommunicationManager:
         #
         # add in backoff of 5 seconds per failure
         #
+
         GroupFile = open('./Groups'+str(self.MyID)+'/'+str(self.currentTargetGroupID)+'.csv', "r")
         row = GroupFile.readlines()
         GroupLength = len(row)
