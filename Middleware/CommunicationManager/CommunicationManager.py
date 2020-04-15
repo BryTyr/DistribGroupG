@@ -14,6 +14,7 @@ class CommunicationManager:
     groupAdmin = ""
     GUI=""
     messageParsing = MessageParsing()
+    CurrentMessageBody=""
     MyID = ""
     GroupMessaes = {}
     CurrentlySendingMessage = False
@@ -58,7 +59,7 @@ class CommunicationManager:
         self.checkIfThresholdMet()
     # sets a background thread that waits 10 seconds before deciding if message to be commited
     def setCountDownToUnAbort(self):
-        myThread = Thread(target=self.countdownExpiredAbort, args=(15,))
+        myThread = Thread(target=self.countdownExpiredAbort, args=(30,))
         myThread.start()
 
     def countdownExpiredAbort(self,seconds):
@@ -67,6 +68,7 @@ class CommunicationManager:
 
     def setAbortMessage(self):
         self.AbortMessage=True
+        self.setCountDownToUnAbort()
 
 
     def sendMessage(self,TargetGroupID,TargetMessageBody):
@@ -78,6 +80,8 @@ class CommunicationManager:
             self.groupActive = TargetGroupID
             self.CurrentMessage = "MessageType:6,GroupID:"+str(TargetGroupID)+",MemberID:"+str(self.MyID)+","+"MessageID:"+str(int(messageID)+1)+","+"MessageBody:"+str(TargetMessageBody)
         self.currentTargetGroupID = TargetGroupID
+        self.CurrentMessageBody=TargetMessageBody
+
         # send message with Updated id
         self.activeNodeFlooding.sendUpdateGroupActivity(TargetGroupID,self.MyID)
         time.sleep(3.0)
@@ -97,6 +101,8 @@ class CommunicationManager:
     # else if say no
     def ReceivedMessage(self,message):
         print("received message")
+        if self.AbortMessage==True:
+            return
         # parses the current received message
         ReceivedGroupID,ReceivedMemberID,ReceivedmessageID,MessageBody = self.messageParsing.parseMessages(message)
 
@@ -119,7 +125,7 @@ class CommunicationManager:
                     self.LastCommitedMessage = int(messageID)
 
                     # Message matches current ID ready to commit it
-                    time.sleep(2.0)
+                    time.sleep(3.0)
                     #received a message for an already commited message
                     print("Last Commited Message Numbers")
                     print(self.LastCommitedMessage)
@@ -178,11 +184,30 @@ class CommunicationManager:
                 negitiveResponses+=1
 
         # get number of active nodes
+        with open('./GroupLog/GroupLog.csv', 'a+') as write_obj:
+            print("OpenedgroupLog")
+            for key,value in self.ActiveNodesTopology.items():
+                csv_writer = writer(write_obj)
+                # Add contents of list as last row in the csv file
+                NewUser=[]
+                NewUser.append(str(self.groupActive))
+                NewUser.append(str(key))
+                if str(value) == str(True):
+                    NewUser.append("Active")
+                else:
+                    NewUser.append("Inactive")
+                csv_writer.writerow(NewUser)
+                csv_writer.writerow("")
+
+
         for key,value in self.ActiveNodesTopology.items():
             print(key)
             print(value)
+            # Add contents of list as last row in the csv file
+
             if str(value) == str(True):
                 ActiveNodes+=1
+
 
         #print(positiveResponses)
         #print(ActiveNodes)
@@ -190,13 +215,22 @@ class CommunicationManager:
         if negitiveResponses > 0:
             print("In minority")
             self.groupAdmin.sendMessageFile(self.currentTargetGroupID)
+            self.AbortMessage=True
+            self.setAbortMessage()
+            self.connectionSystem.SendMessage("MessageType:15,GroupID:"+str(self.currentTargetGroupID)+",MemberID:"+str(self.MyID)+",")
             print("......................................................................................")
             print("\n\n\n\n\n\n\n\n\n\n")
             print("A node remerging occured please refresh and send message again")
             print("......................................................................................")
-            time.sleep(5.0)
-            self.AbortMessage=True
-            self.connectionSystem.SendMessage("MessageType:15,GroupID:"+str(self.currentTargetGroupID)+",MemberID:"+str(self.MyID)+",")
+            time.sleep(15.0)
+
+            print("..................................................")
+            print("Refresh now")
+            # self.AbortMessage=True
+            # self.setAbortMessage()
+            # self.connectionSystem.SendMessage("MessageType:15,GroupID:"+str(self.currentTargetGroupID)+",MemberID:"+str(self.MyID)+",")
+            #self.connectionSystem.SendMessage(self.CurrentMessage)
+            #self.sendMessage(self.currentTargetGroupID,self.CurrentMessageBody)
             return
             #send message to system
             #self.connectionSystem.SendMessage(self.CurrentMessage)
@@ -207,6 +241,7 @@ class CommunicationManager:
         #
         # add in backoff of 5 seconds per failure
         #
+
         GroupFile = open('./Groups'+str(self.MyID)+'/'+str(self.currentTargetGroupID)+'.csv', "r")
         row = GroupFile.readlines()
         GroupLength = len(row)

@@ -118,7 +118,7 @@ class ActiveNodeFlooding:
     # sets a background thread that waits 20 seconds(cool off period) before allowing new group updates
     def setCoolOffGroupFlooding(self):
         self.coolOff = True
-        myThread = Thread(target=self.coolOffTimerExpired, args=(3,))
+        myThread = Thread(target=self.coolOffTimerExpired, args=(20,))
         myThread.start()
 
     def coolOffTimerExpired(self,seconds):
